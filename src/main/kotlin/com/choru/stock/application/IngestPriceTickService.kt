@@ -2,12 +2,14 @@ package com.choru.stock.application
 
 import com.choru.stock.application.port.`in`.IngestPriceTickUseCase
 import com.choru.stock.application.port.out.ExchangeClient
+import com.choru.stock.application.port.out.PriceTickRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
 class IngestPriceTickService(
-    private val exchangeClient: ExchangeClient
+    private val exchangeClient: ExchangeClient,
+    private val priceTickRepository: PriceTickRepository
 ) : IngestPriceTickUseCase {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -25,6 +27,7 @@ class IngestPriceTickService(
                     tick.volume
                 )
             }
+            priceTickRepository.saveAll(ticks)
         }
     }
 }
