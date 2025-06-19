@@ -1,11 +1,11 @@
 # 1) 빌드용 스테이지: Gradle로 fat-jar 생성
-FROM gradle:8.5-jdk17 AS builder
+FROM gradle:8.5-jdk21 AS builder
 WORKDIR /home/gradle/project
 COPY . .
 RUN gradle clean bootJar -x test
 
 # 2) 런타임 스테이지: 생성된 jar만 복사
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # 애플리케이션 포트

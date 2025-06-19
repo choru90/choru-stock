@@ -11,7 +11,7 @@ services:
       - timescale-data:/var/lib/postgresql/data
       - ./sql/init-timescaledb:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   app:
     build: .
