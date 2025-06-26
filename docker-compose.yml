@@ -19,8 +19,8 @@ services:
     volumes:
       - timescale-data:/var/lib/postgresql/data
 
-  tick-write-service:
-    build: ./tick-write-service
+  tick-collector-service:
+    build: ./tick-collector-service
     depends_on:
       - db
     environment:

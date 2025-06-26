@@ -1,2 +1,2 @@
 rootProject.name = "choru-stock"
-include("tick-write-service", "socket-server", "stock-query-service")
+include("tick-collector-service", "socket-server", "stock-query-service")
