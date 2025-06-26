@@ -1,15 +1,13 @@
-package com.choru.stock
+package com.choru.socketserver
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @EnableScheduling
-@EnableJpaAuditing
 @SpringBootApplication
-class ChoruStockApplication
+class SocketServerApplication
 
 fun main(args: Array<String>) {
-    runApplication<ChoruStockApplication>(*args)
+    runApplication<SocketServerApplication>(*args)
 }
