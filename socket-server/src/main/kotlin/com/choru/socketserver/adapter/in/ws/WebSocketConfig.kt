@@ -1,4 +1,4 @@
-package com.choru.socketserver.ws
+package com.choru.socketserver.adapter.`in`.ws
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.socket.config.annotation.EnableWebSocket

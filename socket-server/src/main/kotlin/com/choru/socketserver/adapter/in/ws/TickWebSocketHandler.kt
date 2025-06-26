@@ -1,4 +1,4 @@
-package com.choru.socketserver.ws
+package com.choru.socketserver.adapter.`in`.ws
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

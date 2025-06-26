@@ -1,4 +1,4 @@
-package com.choru.socketserver
+package com.choru.socketserver.infrastructure.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
