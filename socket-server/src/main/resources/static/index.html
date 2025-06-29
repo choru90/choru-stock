@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Tick Stream</title>
+    <script>
+        let ws;
+        function connect() {
+            ws = new WebSocket("ws://" + location.host + "/ws/ticks");
+            ws.onmessage = (e) => {
+                const li = document.createElement('li');
+                li.textContent = e.data;
+                document.getElementById('ticks').prepend(li);
+            };
+        }
+        window.onload = connect;
+    </script>
+</head>
+<body>
+<h1>Real-time Ticks</h1>
+<ul id="ticks"></ul>
+</body>
+</html>
