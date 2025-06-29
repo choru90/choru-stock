@@ -1,4 +1,4 @@
-package com.choru.stock.adapter.out
+package com.choru.tickcollector.adapter.out
 
 import com.choru.tickcollector.application.port.out.PriceTickRepository
 import com.choru.tickcollector.domain.PriceTick
