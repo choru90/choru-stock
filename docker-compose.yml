@@ -19,7 +19,7 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181   # ← ZK 연결 설정
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
 
   db:
@@ -28,6 +28,8 @@ services:
       POSTGRES_USER: stock_user
       POSTGRES_PASSWORD: stock_pass
       POSTGRES_DB: choru_stock
+    ports:
+      - "5433:5432"
     volumes:
       - timescale-data:/var/lib/postgresql/data
 

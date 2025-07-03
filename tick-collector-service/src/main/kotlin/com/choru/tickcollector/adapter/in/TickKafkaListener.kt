@@ -1,12 +1,12 @@
 package com.choru.tickcollector.adapter.`in`
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.choru.tickcollector.adapter.out.dto.ExchangeTickDto
 import com.choru.tickcollector.application.port.out.PriceTickRepository
 import com.choru.tickcollector.domain.Money
 import com.choru.tickcollector.domain.PriceTick
 import com.choru.tickcollector.domain.Symbol
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -14,15 +14,15 @@ import java.math.BigDecimal
 
 @Component
 class TickKafkaListener(
-    private val priceTickRepository: PriceTickRepository
+    private val priceTickRepository: PriceTickRepository,
+    private val objectMapper: ObjectMapper
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val objectMapper = jacksonObjectMapper()
 
-    @KafkaListener(topics = ["\${kafka.topic:ticks}"])
+    @KafkaListener(topics = ["ticks"], groupId = "tick-collector-group")
     fun listen(message: String) {
         try {
-            val dtoList: List<ExchangeTickDto> = objectMapper.readValue(message)
+            val dtoList = objectMapper.readValue<List<ExchangeTickDto>>(message)
             val ticks = dtoList.map { dto ->
                 PriceTick(
                     symbol = Symbol(dto.symbol),

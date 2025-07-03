@@ -13,7 +13,7 @@ import java.math.BigDecimal
 
 @Component
 class ExchangeHttpClient(
-    @Value("\${exchange.base-url}") private val baseUrl: String,
+    @Value("\${poll.url:http://localhost:8081/prices}") private val baseUrl: String,
     private val restTemplate: RestTemplate
 ): ExchangeClient {
 
