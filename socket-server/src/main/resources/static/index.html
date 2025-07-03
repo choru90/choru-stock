@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Stock Ticks</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin:0; }
+        h1 { background-color: #003366; color:#fff; padding: 10px 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #e0e0e0; text-align: left; }
+        tr:nth-child(even) { background-color: #fafafa; }
+    </style>
+</head>
+<body>
+<h1>Live Stock Ticks</h1>
+<table id="tick-table">
+    <thead>
+    <tr>
+        <th>Symbol</th>
+        <th>Price</th>
+        <th>Timestamp</th>
+        <th>Volume</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<script>
+    const tbody = document.querySelector('#tick-table tbody');
+    const socket = new WebSocket(`ws://${location.host}/ws/ticks`);
+
+    socket.onmessage = event => {
+        try {
+            const ticks = JSON.parse(event.data);
+            if (Array.isArray(ticks)) {
+                ticks.forEach(addRow);
+            } else {
+                addRow(ticks);
+            }
+        } catch (e) {
+            console.error('Failed to parse tick data', e);
+        }
+    };
+
+    function addRow(tick) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${tick.symbol}</td>
+            <td>${tick.price}</td>
+            <td>${new Date(tick.timestamp).toLocaleString()}</td>
+            <td>${tick.volume}</td>`;
+        tbody.prepend(row);
+        if (tbody.rows.length > 50) {
+            tbody.removeChild(tbody.lastChild);
+        }
+    }
+</script>
+</body>
+</html>
