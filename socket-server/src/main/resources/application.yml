@@ -1,7 +1,5 @@
 server:
   port: ${SERVER_PORT:8082}
 
-spring:
-  kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+# Spring 관련 추가 설정이 필요한 경우, 아래에 항목을 추가하세요.
 
