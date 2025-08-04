@@ -13,10 +13,14 @@
     </style>
     <!-- STOMP 클라이언트와 SockJS 로더 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2/dist/stomp.min.js"></script>
+    <script src="stomp.min.js"></script>
 </head>
 <body>
 <h1>Live Stock Ticks</h1>
+<div style="padding:0 20px;">
+    <label for="symbolSelect">Symbol:</label>
+    <select id="symbolSelect"></select>
+</div>
 <table id="tick-table">
     <thead>
     <tr>
@@ -31,22 +35,43 @@
 
 <script>
     const tbody = document.querySelector('#tick-table tbody');
-    // 기본으로 구독할 종목 목록
-    const symbols = ['AAPL', 'GOOG'];
+    const symbolSelect = document.getElementById('symbolSelect');
+    const availableSymbols = ['AAPL', 'GOOG', 'TSLA', 'AMZN'];
+
+    // 드롭다운에 종목 옵션 추가
+    availableSymbols.forEach(symbol => {
+        const option = document.createElement('option');
+        option.value = symbol;
+        option.textContent = symbol;
+        symbolSelect.appendChild(option);
+    });
 
     // STOMP 클라이언트 초기화
     const socket = new SockJS('/ws');
     const stompClient = Stomp.over(socket);
+    let currentSubscription = null;
 
-    // 서버에 연결된 후 각 종목별 topic 을 구독한다
-    stompClient.connect({}, () => {
-        symbols.forEach(symbol => {
-            // "topic/ticks/{symbol}" 구독
-            stompClient.subscribe(`/topic/ticks/${symbol}`, message => {
-                const tick = JSON.parse(message.body);
-                addRow(tick);
-            });
+    function subscribeTo(symbol) {
+        if (currentSubscription) {
+            currentSubscription.unsubscribe();
+        }
+        tbody.innerHTML = '';
+        currentSubscription = stompClient.subscribe(`/topic/ticks/${symbol}`, message => {
+            const tick = JSON.parse(message.body);
+            addRow(tick);
         });
+    }
+
+    // 서버에 연결된 후 선택된 종목을 구독한다
+    stompClient.connect({}, () => {
+        subscribeTo(symbolSelect.value);
+    });
+
+    // 선택 변경 시 새 종목을 구독한다
+    symbolSelect.addEventListener('change', () => {
+        if (stompClient.connected) {
+            subscribeTo(symbolSelect.value);
+        }
     });
 
     // 수신한 tick 을 화면에 추가
