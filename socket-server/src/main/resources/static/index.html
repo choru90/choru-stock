@@ -9,6 +9,10 @@
 </head>
 <body>
 <h1>Live Stock Ticks</h1>
+<div style="padding:0 20px;">
+    <label for="symbolSelect">Symbol:</label>
+    <select id="symbolSelect"></select>
+</div>
 <table id="tick-table">
     <thead>
     <tr>
@@ -23,25 +27,43 @@
 
 <script>
     const tbody = document.querySelector('#tick-table tbody');
-    const sockJsClient = new SockJS('/ws');
-    const stompClient = Stomp.over(sockJsClient);
-    const symbols = ['AAPL', 'GOOG'];
+    const symbolSelect = document.getElementById('symbolSelect');
+    const availableSymbols = ['AAPL', 'GOOG', 'TSLA', 'AMZN'];
 
-    stompClient.connect({}, frame => {
-        console.log('STOMP connected:', frame);
-        symbols.forEach(symbol => {
-            stompClient.subscribe(`/topic/ticks/${symbol}`, message => {
-                try {
-                    console.log('값', message);
-                    const tick = JSON.parse(message.body);
-                    addRow(tick);
-                } catch (e) {
-                    console.warn('메시지 처리 실패', e);
-                }
-            });
+    // 드롭다운에 종목 옵션 추가
+    availableSymbols.forEach(symbol => {
+        const option = document.createElement('option');
+        option.value = symbol;
+        option.textContent = symbol;
+        symbolSelect.appendChild(option);
+    });
+
+    // STOMP 클라이언트 초기화
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+    let currentSubscription = null;
+
+    function subscribeTo(symbol) {
+        if (currentSubscription) {
+            currentSubscription.unsubscribe();
+        }
+        tbody.innerHTML = '';
+        currentSubscription = stompClient.subscribe(`/topic/ticks/${symbol}`, message => {
+            const tick = JSON.parse(message.body);
+            addRow(tick);
         });
-    }, error => {
-        console.error('STOMP connection error:', error);
+    }
+
+    // 서버에 연결된 후 선택된 종목을 구독한다
+    stompClient.connect({}, () => {
+        subscribeTo(symbolSelect.value);
+    });
+
+    // 선택 변경 시 새 종목을 구독한다
+    symbolSelect.addEventListener('change', () => {
+        if (stompClient.connected) {
+            subscribeTo(symbolSelect.value);
+        }
     });
 
     function addRow(tick) {
