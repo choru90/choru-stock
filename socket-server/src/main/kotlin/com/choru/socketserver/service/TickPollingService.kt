@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.time.Instant
+import java.time.LocalDateTime
 
 /**
  * mock 서버에서 주기적으로 각 종목의 tick 데이터를 polling 하여
@@ -15,13 +16,10 @@ import java.time.Instant
 @Service
 class TickPollingService(
     private val messagingTemplate: SimpMessagingTemplate,
-    @Value("\${mock.base-url:http://localhost:9000}") private val mockBaseUrl: String
+    @Value("\${mock.base-url:http://localhost:8081}") private val mockBaseUrl: String
 ) {
 
-    // 간단한 HTTP 호출을 위해 RestTemplate 사용
     private val restTemplate = RestTemplate()
-
-    // TODO: 실제 운영에서는 외부 설정이나 DB에서 종목 목록을 관리하도록 수정한다.
     private val symbols = listOf("AAPL", "GOOG")
 
     /**
@@ -37,7 +35,7 @@ class TickPollingService(
             val tick = Tick(
                 symbol = symbol,
                 price = response.price,
-                timestamp = response.timestamp ?: Instant.now().toEpochMilli(),
+                timestamp = response.timestamp ?: LocalDateTime.now(),
                 volume = response.volume
             )
             // 각 종목별 topic 으로 전송
@@ -51,6 +49,6 @@ class TickPollingService(
     data class TickResponse(
         val price: Double,
         val volume: Long,
-        val timestamp: Long?
+        val timestamp: LocalDateTime?
     )
 }
