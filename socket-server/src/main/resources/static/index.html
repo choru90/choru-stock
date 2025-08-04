@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>Live Stock Ticks</title>
@@ -11,6 +11,9 @@
         th { background-color: #e0e0e0; text-align: left; }
         tr:nth-child(even) { background-color: #fafafa; }
     </style>
+    <!-- STOMP 클라이언트와 SockJS 로더 -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2/dist/stomp.min.js"></script>
 </head>
 <body>
 <h1>Live Stock Ticks</h1>
@@ -25,23 +28,28 @@
     </thead>
     <tbody></tbody>
 </table>
+
 <script>
     const tbody = document.querySelector('#tick-table tbody');
-    const socket = new WebSocket(`ws://${location.host}/ws/ticks`);
+    // 기본으로 구독할 종목 목록
+    const symbols = ['AAPL', 'GOOG'];
 
-    socket.onmessage = event => {
-        try {
-            const ticks = JSON.parse(event.data);
-            if (Array.isArray(ticks)) {
-                ticks.forEach(addRow);
-            } else {
-                addRow(ticks);
-            }
-        } catch (e) {
-            console.error('Failed to parse tick data', e);
-        }
-    };
+    // STOMP 클라이언트 초기화
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
 
+    // 서버에 연결된 후 각 종목별 topic 을 구독한다
+    stompClient.connect({}, () => {
+        symbols.forEach(symbol => {
+            // "topic/ticks/{symbol}" 구독
+            stompClient.subscribe(`/topic/ticks/${symbol}`, message => {
+                const tick = JSON.parse(message.body);
+                addRow(tick);
+            });
+        });
+    });
+
+    // 수신한 tick 을 화면에 추가
     function addRow(tick) {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -50,6 +58,7 @@
             <td>${new Date(tick.timestamp).toLocaleString()}</td>
             <td>${tick.volume}</td>`;
         tbody.prepend(row);
+        // 50개 이상이면 오래된 데이터 삭제
         if (tbody.rows.length > 50) {
             tbody.removeChild(tbody.lastChild);
         }
