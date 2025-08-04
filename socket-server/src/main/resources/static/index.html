@@ -13,6 +13,9 @@
     <label for="symbolSelect">Symbol:</label>
     <select id="symbolSelect"></select>
 </div>
+<div style="padding:0 20px;">
+    <canvas id="chart" width="800" height="400" style="background:#fff;border:1px solid #ccc;"></canvas>
+</div>
 <table id="tick-table">
     <thead>
     <tr>
@@ -43,14 +46,23 @@
     const stompClient = Stomp.over(socket);
     let currentSubscription = null;
 
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    const candles = [];
+    const candleDuration = 60 * 1000; // 1분
+    const maxCandles = 50;
+
     function subscribeTo(symbol) {
         if (currentSubscription) {
             currentSubscription.unsubscribe();
         }
         tbody.innerHTML = '';
+        candles.length = 0;
+        drawChart();
         currentSubscription = stompClient.subscribe(`/topic/ticks/${symbol}`, message => {
             const tick = JSON.parse(message.body);
             addRow(tick);
+            addTickToCandles(tick);
         });
     }
 
@@ -77,6 +89,48 @@
         if (tbody.rows.length > 50) {
             tbody.removeChild(tbody.lastChild);
         }
+    }
+
+    function addTickToCandles(tick) {
+        const bucket = Math.floor(tick.timestamp / candleDuration) * candleDuration;
+        let candle = candles[candles.length - 1];
+        if (!candle || candle.timestamp !== bucket) {
+            candle = { timestamp: bucket, open: tick.price, high: tick.price, low: tick.price, close: tick.price };
+            candles.push(candle);
+            if (candles.length > maxCandles) candles.shift();
+        } else {
+            candle.high = Math.max(candle.high, tick.price);
+            candle.low = Math.min(candle.low, tick.price);
+            candle.close = tick.price;
+        }
+        drawChart();
+    }
+
+    function drawChart() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (candles.length === 0) return;
+        const prices = candles.flatMap(c => [c.high, c.low]);
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const pad = 10;
+        const scale = (canvas.height - pad * 2) / (max - min || 1);
+        const width = canvas.width / candles.length;
+        candles.forEach((c, i) => {
+            const x = i * width + width / 2;
+            const yHigh = canvas.height - (c.high - min) * scale - pad;
+            const yLow = canvas.height - (c.low - min) * scale - pad;
+            ctx.beginPath();
+            ctx.moveTo(x, yHigh);
+            ctx.lineTo(x, yLow);
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            const yOpen = canvas.height - (c.open - min) * scale - pad;
+            const yClose = canvas.height - (c.close - min) * scale - pad;
+            ctx.fillStyle = c.close >= c.open ? '#0f0' : '#f00';
+            const rectY = Math.min(yOpen, yClose);
+            const rectH = Math.max(Math.abs(yClose - yOpen), 1);
+            ctx.fillRect(x - width * 0.4, rectY, width * 0.8, rectH);
+        });
     }
 </script>
 </body>
